@@ -1,0 +1,25 @@
+
+таблица с датами заказов предзаказов
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    tg_id BIGINT NOT NULL,
+    date DATE NOT NULL
+);
+
+таблица с метриками
+
+CREATE TABLE user_actions (
+    id SERIAL PRIMARY KEY,
+    tg_id BIGINT NOT NULL,
+    tg_username TEXT,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    action TEXT NOT NULL
+);
+
+таблица с ответами на опрос
+
+CREATE TABLE survey (
+    tg_id BIGINT PRIMARY KEY,
+    answer TEXT NOT NULL
+);
