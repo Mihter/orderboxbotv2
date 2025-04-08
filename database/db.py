@@ -8,11 +8,11 @@ from database.config import host, user, password, db_name, schema_name
 class DataBase:
     def __init__(self):
         self.connection = ps.connect(
-                host=host,
-                user=user,
-                password=password,
-                database=db_name
-            )
+            host=host,
+            user=user,
+            password=password,
+            database=db_name
+        )
         self.connection.autocommit = True
 
     # Выполнение SQL-запроса
@@ -53,6 +53,18 @@ class DataBase:
         """
 
         self.exec_update_query(query)
+
+    def save_user(self, tg_id, tg_username):
+        query = f"SELECT * FROM users u WHERE u.tg_id = {tg_id}"
+
+        user = self.exec_query(query)
+        if not user:
+            query = f"""
+            INSERT INTO users (tg_id, tg_username)
+            VALUES ('{tg_id}', '{tg_username}')
+            """
+
+            self.exec_update_query(query)
 
     def save_poll_answer(self, tg_id, answer):
         query = f"SELECT 1 FROM survey WHERE tg_id = {tg_id}"

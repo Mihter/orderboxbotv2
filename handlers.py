@@ -11,10 +11,13 @@ from decimal import Decimal
 import text
 from datetime import datetime
 
+
 from database.db import DataBase
 
+import subprocess
 import html
 import logging
+import os
 
 
 db = DataBase()
@@ -30,18 +33,53 @@ class OrderStates(StatesGroup):
 
 print("v1.0")
 
+@router.message(Command("metrics"))
+async def metrics_handler(message: Message):
+    id_username = message.from_user.username
+    admin_usernames = ['fazylov_v', 'Mihter_2208', 'irinacreek','Yazshiopl']
+    if id_username in admin_usernames:
+        try:
+            # Запускаем скрипт metric.py
+            subprocess.run(["python", "./metrics/metric.py"], check=True)
+
+            # Проверяем, существует ли файл stats.txt
+            if os.path.exists("stats.txt"):
+                with open("stats.txt", "r", encoding="utf-8") as file:
+                    stats_content = file.read()
+
+                # Отправляем содержимое файла пользователю
+                await message.answer(f"📊 Метрики:\n\n{html.escape(stats_content)}", parse_mode="HTML")
+            else:
+                await message.answer("Файл stats.txt не найден.")
+        except subprocess.CalledProcessError:
+            await message.answer("Ошибка при выполнении скрипта.")
+        except Exception as e:
+            await message.answer(f"Произошла ошибка: {e}")
+
+@router.message(Command("orders"))
+async def metrics_handler(message: Message):
+    id_username = message.from_user.username
+    admin_usernames = ['fazylov_v', 'Mihter_2208', 'irinacreek', 'Yazshiopl']
+    if id_username in admin_usernames:
+        query = "SELECT u.tg_username, o.date FROM orders o LEFT JOIN users u ON u.tg_id = o.tg_id ORDER BY o.date"
+        orders = db.exec_query(query)
+        text = ''
+        for order in orders:
+            text += f"@{order[0]} {order[1].strftime("%B %d")}\n"
+        await message.answer(text)
 
 @router.message(Command("start"))
 async def start_handler(message: Message):
     tg_id = message.from_user.id
     username = message.from_user.username
     db.save_user_action(tg_id, username, '/start')
+    db.save_user(tg_id, username)
 
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="Ознакомиться с наполнением", callback_data="view_contents"))
     builder.row(InlineKeyboardButton(text="Хочу коробку", callback_data="order_box"))
 
-    photo = FSInputFile("./img/VIP_Box.jpg")
+    photo = FSInputFile("./img/imgbox2.jpg")
     await message.answer_photo(photo, caption=text.privet, reply_markup=builder.as_markup())
 
 
